@@ -123,7 +123,7 @@ type ProtoInputOption struct {
 	//
 	// Default: nil.
 	Formats []format.Format `yaml:"formats"`
-	
+
 	// Specify only these subdirs (relative to input dir) to be processed.
 	//
 	// Default: nil.
@@ -165,6 +165,31 @@ type ProtoInputOption struct {
 	//
 	// Default: "".
 	MessagerPattern string `yaml:"messagerPattern"`
+
+	// When a union has more sub-messages than this threshold, they are
+	// extracted out of the union as top-level messages placed in auxiliary
+	// shard proto files, and the main proto imports those shards. This
+	// substantially shrinks any single generated `.pb.cc` translation unit
+	// and allows the C++ back-end to compile the shards in parallel.
+	//
+	// Extracted sub-messages are renamed to `<Union>T_<SubType>` (the "T_"
+	// separator avoids colliding with protoc-gen-go's oneof wrapper naming,
+	// which is `<Parent>_<CamelField>` and does not disambiguate across
+	// files). Code that only depends on the union's `Type` enum and the
+	// generated field accessors is unaffected by this rename.
+	//
+	// Set to 0 to disable (the default): unions are always emitted with
+	// their sub-messages nested inline.
+	//
+	// Default: 0 (disabled).
+	UnionSplitThreshold int32 `yaml:"unionSplitThreshold"`
+
+	// Number of extracted sub-messages placed in each shard file when
+	// UnionSplitThreshold triggers splitting. Only used when
+	// UnionSplitThreshold > 0.
+	//
+	// Default: 40.
+	UnionSplitShardSize int32 `yaml:"unionSplitShardSize"`
 }
 
 // Output options for generating proto files.
